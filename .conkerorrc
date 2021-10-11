@@ -1,0 +1,260 @@
+// pain points: only very old addons are supported
+//
+// missing Firefox addons:
+// - I don't care about cookies
+// - Xdebug-ext (but can probably be ported?)
+//   https://github.com/lhall-amphibee/xdebug-ext
+//   seems to just set a single XDEBUG_SESSION: PHPSTORM header?
+// - Dark Reader
+// - DF YouTube (can probably be abstracted to youtube-dl?)
+
+// brew install waterfox-classic
+
+// installation instructions:
+// https://impaktor.gitlab.io/conkeror.html
+
+// Youtube.com does not load, there is no search input?
+
+// https://github.com/sleepomeno/conkerorrc/blob/master/conkerorrc.js
+// https://github.com/impaktor/dotfiles/blob/master/conkerorrc
+// https://github.com/nyameko/conkerorrc
+
+// pkill waterfox || open '/Applications/Waterfox Classic.app' --args --app /Users/Gira/Documents/code/conkeror/application.ini
+
+interactive("dima-scroll-down", "Scroll down.", function (I) {
+  I.buffer.focused_frame.scrollBy({
+    top: 60,
+    behavior: "auto",
+  });
+});
+
+interactive("dima-scroll-up", "Scroll up.", function (I) {
+  I.buffer.focused_frame.scrollBy({
+    top: -60,
+    behavior: "auto",
+  });
+});
+
+// TODO why is this not smooth anymore?
+interactive("dima-scroll-some-down", "Scroll some down.", function (I) {
+  I.buffer.focused_frame.scrollBy({
+    top: 360,
+    behavior: "smooth",    
+  });
+});
+
+interactive("dima-scroll-some-up", "Scroll some up.", function (I) {
+  I.buffer.focused_frame.scrollBy({
+    top: -360,
+    behavior: "smooth",
+  });
+});
+
+interactive(
+  "dima-copy-url",
+  "Copy buffer URL into system clipboard.",
+  function (I) {
+    writeToClipboard(I.buffer.focused_frame.location.href);
+    I.minibuffer.message("Copied URL into system clipboard");
+  }
+);
+
+// https://github.com/ivoarch/conkeror-theme-zenburn
+
+theme_load_paths.unshift("/Users/Gira/Downloads/");
+theme_unload("default");
+theme_load("conkeror-theme-zenburn");
+
+/// mode line
+
+// http://conkeror.org/Favicons
+require("favicon.js");
+add_hook("mode_line_hook", mode_line_adder(loading_count_widget), true);
+add_hook("mode_line_hook", mode_line_adder(buffer_count_widget), true);
+add_hook("mode_line_hook", mode_line_adder(zoom_widget));
+
+// remove clock
+remove_hook("mode_line_hook", mode_line_adder(clock_widget));
+
+//
+
+dowload_buffer_automatic_open_target = OPEN_NEW_BUFFER;
+
+can_kill_last_buffer = false;
+
+// http://conkeror.org/Hinting
+hints_display_url_panel = true;
+hints_minibuffer_annotation_mode(true);
+hint_digits = "cdeghjkmnopqrtuvwz";
+hints_auto_exit_delay = 210;
+hints_ambiguous_auto_exit_delay = 210;
+
+// one has to run `make` prior in the Conkeror directory
+// for the conkeror-spawn-helper executable
+
+editor_shell_command = "emacsclient";
+view_source_use_external_editor = true;
+
+/// unfinished keymaps like Vimium (and not in the spirit of Conkeror)
+
+define_key(default_global_keymap, "a", "execute-extended-command");
+define_key(default_global_keymap, "=", "reload");
+
+define_key(default_global_keymap, "z", "reinit");
+define_key(content_buffer_normal_keymap, "z", "reinit");
+
+define_key(default_global_keymap, "u", "find-url-new-buffer");
+define_key(content_buffer_normal_keymap, "u", "find-url-new-buffer");
+
+define_key(default_global_keymap, "f", "restore-killed-buffer-url");
+define_key(content_buffer_normal_keymap, "f", "restore-killed-buffer-url");
+
+define_key(default_global_keymap, "c", "dima-scroll-up");
+define_key(content_buffer_normal_keymap, "c", "dima-scroll-up");
+
+define_key(default_global_keymap, "t", "dima-scroll-down");
+define_key(content_buffer_normal_keymap, "t", "dima-scroll-down");
+
+define_key(content_buffer_normal_keymap, "g", "buffer-previous");
+define_key(content_buffer_normal_keymap, "r", "buffer-next");
+define_key(special_buffer_keymap, "g", "buffer-previous");
+define_key(special_buffer_keymap, "r", "buffer-next");
+
+// define_key(content_buffer_normal_keymap, "m", "cmd_scrollPageDown");
+
+
+define_key(content_buffer_normal_keymap, "m", "dima-scroll-some-down");
+define_key(content_buffer_normal_keymap, "v", "dima-scroll-some-up");
+
+define_key(special_buffer_keymap, "d", "kill-current-buffer");
+define_key(content_buffer_normal_keymap, "d", "kill-current-buffer");
+
+undefine_key(content_buffer_normal_keymap, "space");
+undefine_key(default_global_keymap, "space");
+undefine_key(special_buffer_keymap, "space");
+undefine_key(content_buffer_normal_keymap, "M-v");
+undefine_key(default_global_keymap, "M-v");
+undefine_key(special_buffer_keymap, "M-v");
+
+define_key(default_global_keymap, "M-a", "caret-cmd_selectAll");
+
+define_key(content_buffer_normal_keymap, "space e", "follow-new-buffer");
+define_key(content_buffer_normal_keymap, "space u", "switch-to-buffer");
+define_key(default_global_keymap, "space u", "switch-to-buffer");
+define_key(content_buffer_normal_keymap, "space d", "cmd_scrollTop");
+define_key(content_buffer_normal_keymap, "space b", "cmd_scrollBottom");
+define_key(content_buffer_normal_keymap, "space w -", "restart");
+define_key(content_buffer_normal_keymap, "space y", "dima-copy-url");
+
+define_key(content_buffer_normal_keymap, "space h k", "describe-key");
+define_key(special_buffer_keymap, "space h k", "describe-key");
+
+define_key(default_global_keymap, "e", "follow");
+define_key(content_buffer_normal_keymap, "e", "follow");
+// define_key(default_global_keymap, "u", "find-url-new-buffer");
+
+// define_key(default_global_keymap, "space space", "reinit");
+// define_key(content_buffer_normal_keymap, "space space", "reinit");
+
+// define_key(default_global_keymap, "h", "back");
+define_key(content_buffer_normal_keymap, "h", "back");
+// define_key(default_global_keymap, "n", "forward");
+define_key(content_buffer_normal_keymap, "n", "forward");
+
+define_key(content_buffer_normal_keymap, "b", "isearch-forward");
+define_key(content_buffer_normal_keymap, "w", "isearch-backward");
+
+// define_key(special_buffer_keymap, "space", "reinit");
+// define_key(default_global_keymap, "SPC", "reinit");
+
+define_key(text_keymap, "M-c", "cmd_copy");
+define_key(content_buffer_normal_keymap, "M-c", "cmd_copy");
+define_key(special_buffer_keymap, "M-c", "cmd_copy");
+define_key(help_buffer_keymap, "M-c", "cmd_copy");
+define_key(default_global_keymap, "M-c", "cmd_copy");
+
+define_key(text_keymap, "M-v", "paste-x-primary-selection");
+define_key(default_global_keymap, "M-v", "cmd_paste");
+
+define_key(content_buffer_normal_keymap, "i", "browser-focus-next-form-field");
+
+// http://conkeror.org/Tips#Default_Zoom_Level
+
+// set default zoom of 150%
+function dima_zoom_set(buffer) {
+  browser_zoom_set(buffer, false, 150);
+}
+add_hook("create_buffer_late_hook", dima_zoom_set);
+
+zoom_levels = [60, 75, 90, 100, 120, 150, 210, 300, 600, 900];
+
+//
+
+url_completion_use_history = true;
+url_completion_use_bookmarks = true;
+url_completion_use_webjumps = true;
+minibuffer_auto_complete_default = true;
+default_minibuffer_auto_complete_delay = 0;
+
+// TODO improve isearch?
+// TODO as a tangled org file?
+//      BEGIN_SRC emacs-lisp :tangle nil
+
+// http://conkeror.org/Tabs
+
+require("new-tabs.js");
+url_remoting_fn = load_url_in_new_buffer;
+clicks_in_new_buffer_target = OPEN_NEW_BUFFER_BACKGROUND;
+tab_bar_show_icon = true;
+tab_bar_show_index = false;
+
+
+require("session.js");
+session_auto_save_auto_load = true;
+
+
+// https://raw.githubusercontent.com/scottjad/restore_killed_buffer_url/master/restore_killed_buffer_url.js
+// I think by the time kill_buffer_hook runs the buffer is gone so I
+// patch kill_buffer
+
+var kill_buffer_original = kill_buffer_original || kill_buffer;
+var killed_buffers = [];
+
+function kill_buffer(buffer, force) {
+    if (buffer.display_uri_string) {
+        killed_buffers.push({url: buffer.display_uri_string,
+                             title: buffer.title,
+                             history: buffer.web_navigation.sessionHistory});
+    }
+    kill_buffer_original(buffer,force);
+};
+
+// TODO fix prettier on yield
+interactive("restore-killed-buffer-url",
+            "Loads url from a previously killed buffer",
+            function (I) {
+                if (killed_buffers.length !== 0) {
+                    var killed_buffer = yield I.minibuffer.read(
+                        $prompt = "Restore killed buffer url:",
+                      $completer = new all_word_completer(
+                        $completions = killed_buffers,
+                                                            $get_string = function (x) x.url,
+                                                            $get_description = function (x) x.title),
+                        $default_completion = killed_buffers[killed_buffers.length - 1],
+                        $auto_complete = "url",
+                        $auto_complete_initial = true,
+                        $auto_complete_delay = 0,
+                        $require_match = true
+                    );
+                    
+                    load_url_in_new_buffer(killed_buffer.url);
+
+                    var buf = I.window.buffers.current;
+                    buf.web_navigation.sessionHistory = killed_buffer.history;
+                    var original_index = buf.web_navigation.sessionHistory.index;
+                    buf.web_navigation.gotoIndex(original_index);
+
+                } else {
+                    I.window.minibuffer.message("No buffers to restore");
+                }
+            });
